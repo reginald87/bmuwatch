@@ -1,0 +1,218 @@
+// BMU WATCH - Prisma schema
+// Database: SQLite via Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------
+// Enums
+// ------------------------------------------------------------------
+
+enum ReporterType {
+  STUDENT
+  STAFF
+}
+
+enum Urgency {
+  NORMAL
+  URGENT
+  CRITICAL
+}
+
+enum ReportStatus {
+  SUBMITTED
+  RECEIVED
+  READ_BY_CSO
+  UNDER_INVESTIGATION
+  AWAITING_INFORMATION
+  RESPONDED
+  RESOLVED
+  CLOSED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  CSO
+  SECURITY_OFFICER
+}
+
+enum AuditAction {
+  VIEWED
+  STATUS_CHANGED
+  ASSIGNED
+  RESPONDED
+  RESOLVED
+  CATEGORY_CHANGED
+  LOCATION_CHANGED
+  REPORTER_CHANGED
+}
+
+// ------------------------------------------------------------------
+// Models
+// ------------------------------------------------------------------
+
+model AdminUser {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  role          AdminRole   @default(CSO)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  assignments   ReportAssignment[]
+  assignmentsMade ReportAssignment[] @relation("AssignedBy")
+  auditLogs     AuditLog[]
+  statusChanges ReportStatusHistory[]
+}
+
+model SecurityCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reports     SecurityReport[]
+}
+
+model SecurityLocation {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reports     SecurityReport[]
+}
+
+model SecurityReport {
+  id               String        @id @default(cuid())
+  clientSubmissionId String      @unique
+  serverReference  String        @unique
+  reporterType     ReporterType
+  isAnonymous      Boolean       @default(false)
+  // Identified reporter details. MUST be null/empty when anonymous.
+  fullName         String?
+  studentId        String?
+  staffId          String?
+  department       String?
+  faculty          String?
+  email            String?
+  phone            String?
+
+  categoryId       String
+  category         SecurityCategory @relation(fields: [categoryId], references: [id])
+
+  locationId       String
+  location         SecurityLocation @relation(fields: [locationId], references: [id])
+
+  urgency          Urgency       @default(NORMAL)
+  incidentDate     DateTime?
+  incidentTime     String?
+  description      String
+  additionalInfo   String?
+
+  status           ReportStatus  @default(SUBMITTED)
+
+  // Who created the local report on the client device. Only used for
+  // local report association/synchronization, never as an identity.
+  installationId   String?
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  responses        ReportResponse[]
+  attachments      ReportAttachment[]
+  statusHistory    ReportStatusHistory[]
+  assignments      ReportAssignment[]
+  auditLogs        AuditLog[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([categoryId])
+  @@index([locationId])
+  @@index([clientSubmissionId])
+  @@index([installationId])
+}
+
+model ReportResponse {
+  id            String          @id @default(cuid())
+  reportId      String
+  report        SecurityReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  authorRole    String          @default("USER") // USER or ADMIN
+  authorName    String?         // admin name for admin messages; null for anonymous user messages
+  isFromAdmin   Boolean         @default(false)
+  body          String
+  createdAt     DateTime        @default(now())
+
+  @@index([reportId])
+}
+
+model ReportAttachment {
+  id             String          @id @default(cuid())
+  reportId       String
+  report         SecurityReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String          @unique // server-side object key/path
+  createdAt      DateTime        @default(now())
+
+  @@index([reportId])
+}
+
+model ReportStatusHistory {
+  id          String          @id @default(cuid())
+  reportId    String
+  report      SecurityReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fromStatus  ReportStatus?
+  toStatus    ReportStatus
+  adminId     String?
+  admin       AdminUser?      @relation(fields: [adminId], references: [id])
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  @@index([reportId])
+}
+
+model ReportAssignment {
+  id           String          @id @default(cuid())
+  reportId     String
+  report       SecurityReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  assigneeId   String
+  assignee     AdminUser       @relation(fields: [assigneeId], references: [id])
+  assignedById String
+  assignedBy   AdminUser       @relation("AssignedBy", fields: [assignedById], references: [id])
+  assignedAt   DateTime        @default(now())
+  note         String?
+
+  @@index([reportId])
+  @@index([assigneeId])
+}
+
+model AuditLog {
+  id            String          @id @default(cuid())
+  reportId      String?
+  report        SecurityReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  adminId       String?
+  admin         AdminUser?      @relation(fields: [adminId], references: [id])
+  action        AuditAction
+  detail        String?
+  createdAt     DateTime        @default(now())
+
+  @@index([reportId])
+  @@index([adminId])
+  @@index([createdAt])
+}
