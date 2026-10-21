@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Set NEXT_OUTPUT=standalone to emit a self-contained build that needs no
+  // node_modules on the server. Used by scripts/build-standalone.mjs and
+  // scripts/make-artifact.mjs for the prebuilt-artifact deployment path.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   experimental: {
     serverActions: {
       bodySizeLimit: "25mb"

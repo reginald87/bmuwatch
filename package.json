@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:standalone": "node scripts/build-standalone.mjs",
+    "artifact": "node scripts/make-artifact.mjs",
     "start": "next start",
     "start:cpanel": "node server.js",
     "lint": "next lint",
