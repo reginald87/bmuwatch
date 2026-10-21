@@ -82,31 +82,34 @@ chmod 750 bmuwatch-data bmuwatch-data/uploads
 
 ### Path A / B — Git over SSH (recommended)
 
+The repository is **public**, so no credentials, token or deploy key is needed:
+
 ```bash
 cd ~
 git clone https://github.com/reginald87/bmuwatch.git bmuwatch
 cd bmuwatch
 ```
 
-If the repository is **private**, use an SSH clone URL with a deploy key (never your account
-password):
+Updates are a plain `git pull` from the app root.
 
-```bash
-# 1. Generate a key pair ON THE SERVER
-ssh-keygen -t ed25519 -C "bmuwatch-cpanel" -f ~/.ssh/bmuwatch_deploy -N ""
-# 2. Show the PUBLIC key and add it to the GitHub repo
-cat ~/.ssh/bmuwatch_deploy.pub
-#    GitHub -> repo -> Settings -> Deploy keys -> Add deploy key (read-only is enough)
-# 3. Point git at that key
-git config --global core.sshCommand "ssh -i ~/.ssh/bmuwatch_deploy -o IdentitiesOnly=yes"
-git clone git@github.com:<you>/bmuwatch.git bmuwatch
-```
+> If you ever make the repository private, switch to an SSH clone with a deploy key (never your
+> account password):
+> ```bash
+> # 1. Generate a key pair ON THE SERVER
+> ssh-keygen -t ed25519 -C "bmuwatch-cpanel" -f ~/.ssh/bmuwatch_deploy -N ""
+> # 2. Add the PUBLIC key to the GitHub repo: Settings -> Deploy keys -> Add deploy key
+> cat ~/.ssh/bmuwatch_deploy.pub
+> # 3. Point git at that key, then clone
+> git config --global core.sshCommand "ssh -i ~/.ssh/bmuwatch_deploy -o IdentitiesOnly=yes"
+> git clone git@github.com:<you>/bmuwatch.git bmuwatch
+> ```
 
 ### Path C — cPanel Git™ Version Control panel (no git CLI needed)
 
 1. `cPanel → Files → Git Version Control → Create Repository`.
 2. **Repository Path**: `bmuwatch-repo` (keep it outside the app root and outside `public_html`).
-3. **Repository URL**: the SSH clone URL for a private repo, e.g. `git@github.com:<you>/bmuwatch.git`.
+3. **Repository URL**: `https://github.com/reginald87/bmuwatch.git`. The repository is public, so
+   cPanel clones it with no username, token or SSH key.
 4. Save. Then `Manage → Update from Remote` to pull, and `Manage → Pull or Deploy → Deploy HEAD
    Commit` to run the tasks in `.cpanel.yml`.
 5. `.cpanel.yml` is committed at the repository root. **Edit the `DEPLOYPATH` line to your own
@@ -148,6 +151,13 @@ See "Path D" below.
 
 Click **Create Application**. cPanel writes a Passenger reverse-proxy `.htaccess` into the document
 root (`public_html`, or `public_html/<domain>` for a subdomain) — do not delete it.
+
+> **cPanel 138+ (Meridian theme) alternative.** Newer cPanel versions expose a **Web Apps** feature
+> that deploys a Node.js app straight from a Git repository URL, a ZIP upload, or an MCP
+> connection. Because the repository is public, `https://github.com/reginald87/bmuwatch.git` can be
+> pasted straight in with no credentials. Check `cPanel → Application Manager` / `Web Apps` first; if
+> it is available it will run the build and the npm install for you. The manual flow below works on
+> every cPanel version and gives you control over the build flags, so it remains the reference.
 
 > **Do NOT add `NODE_ENV=production` to the environment-variable box.** cPanel's "Run NPM Install"
 > button installs with `--production` when `NODE_ENV=production` is set, which skips `typescript`
@@ -543,7 +553,7 @@ End-to-end checks executed against a running instance of this build:
 # --- one-time setup (Paths A/B) ---
 cd ~ && mkdir -p bmuwatch-data/uploads bmuwatch-data/backups
 chmod 750 bmuwatch-data bmuwatch-data/uploads
-git clone https://github.com/<you>/bmuwatch.git bmuwatch && cd bmuwatch
+git clone https://github.com/reginald87/bmuwatch.git bmuwatch && cd bmuwatch
 npm ci --omit=dev --no-audit --no-fund          # Path A  (add --include=dev for Path B)
 cat > .env <<'EOF'
 DATABASE_URL="file:/home/cpaneluser/bmuwatch-data/prod.db"
