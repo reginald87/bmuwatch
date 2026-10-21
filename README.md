@@ -68,10 +68,12 @@ npm run dev                 # http://localhost:3000
 | `npm run dev` | Start Next.js dev server |
 | `npm run build` | Type-generate + production build |
 | `npm run start` | Start production build |
+| `npm run start:cpanel` | Start via `server.js` (cPanel / Passenger entry point) |
 | `npm run typecheck` | Run TypeScript (`tsc --noEmit`) |
 | `npm test` | Run the Vitest suite |
 | `npm run lint` | Next/ESLint lint |
-| `npm run db:seed` | Re-seed reference data + dev admins |
+| `npm run db:seed` | Re-seed reference data + dev admins (dev only) |
+| `npm run db:seed:prod` | Production bootstrap: admins from env vars, reference data, no demo reports |
 | `npm run db:studio` | Open Prisma Studio to inspect the DB |
 
 > **Note:** On some Windows setups, `next build` prints a `@next/swc-win32-x64-msvc is not a valid Win32 application` warning. Next falls back to the WebAssembly compiler and the build still succeeds; the warning is cosmetic.
@@ -84,11 +86,21 @@ See `.env.example` for a full template. Required:
 
 | Variable | Notes |
 | --- | --- |
-| `DATABASE_URL` | SQLite file URL, e.g. `file:./dev.db` (relative to `prisma/`) |
+| `DATABASE_URL` | SQLite file URL. Dev: `file:./dev.db` (relative to `prisma/`). Production: absolute path, e.g. `file:/home/<user>/bmuwatch-data/prod.db` |
 | `AUTH_SECRET` | Signs admin session JWTs. Use ≥ 32 random chars (`JWT_SECRET` is a fallback). |
 | `NEXT_PUBLIC_APP_URL` | Base URL of the app |
-| `UPLOAD_DIR` | *Optional* attachments dir on disk (defaults to `./uploads`) |
+| `UPLOAD_DIR` | *Optional* attachments dir on disk (defaults to `./uploads`). In production point it **outside** the app root |
 | `SEED_*` | Dev-only seed admin credentials |
+| `ADMIN_*`, `CSO_*`, `OFFICER_*` | Production bootstrap admins used by `npm run db:seed:prod` |
+
+---
+
+## Deploying
+
+Production deployment to cPanel (Setup Node.js App / Passenger) is documented in
+**[DEPLOY_CPANEL.md](DEPLOY_CPANEL.md)** — it covers the folder layout, database and upload
+placement outside the web root, the Node.js app configuration, migrations, the production seed,
+the build, SSL/PWA setup, backups and troubleshooting.
 
 ---
 

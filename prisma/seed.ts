@@ -1,5 +1,6 @@
 import { PrismaClient, ReporterType, Urgency } from "@prisma/client";
 import bcrypt from "bcryptjs";// Seed script for development only. NOT for production.
+import { CATEGORY_NAMES, LOCATION_NAMES } from "./reference-data";
 
 const prisma = new PrismaClient();
 
@@ -52,21 +53,7 @@ async function main() {
   // ------------------------------------------------------------------
   // Security categories
   // ------------------------------------------------------------------
-  const categories = [
-    "Immediate Security Threat",
-    "Suspicious Activity",
-    "Theft / Missing Property",
-    "Harassment / Threat",
-    "Unauthorized Access",
-    "Violence Concern",
-    "Fire / Emergency",
-    "Unsafe Environment",
-    "Hostel Security",
-    "Security Personnel Concern",
-    "Traffic / Parking Security",
-    "Cybersecurity Concern",
-    "Other"
-  ];
+  const categories = CATEGORY_NAMES;
 
   const categoryRecords: Record<string, { id: string }> = {};
   for (let i = 0; i < categories.length; i++) {
@@ -81,20 +68,7 @@ async function main() {
   // ------------------------------------------------------------------
   // Security locations
   // ------------------------------------------------------------------
-  const locations = [
-    "Main Gate",
-    "Main Campus",
-    "Lecture Theatre",
-    "Library",
-    "Hostel",
-    "Laboratory",
-    "Faculty Area",
-    "Administrative Block",
-    "Medical Centre",
-    "Car Park",
-    "Sports Area",
-    "Other"
-  ];
+  const locations = LOCATION_NAMES;
 
   const locationRecords: Record<string, { id: string }> = {};
   for (let i = 0; i < locations.length; i++) {
