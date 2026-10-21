@@ -1,0 +1,26 @@
+---
+# cPanel Git(TM) Version Control deployment tasks.
+#
+# cPanel -> Files -> Git Version Control -> Manage -> "Deploy HEAD Commit"
+# runs these tasks from the cPanel-managed repository directory, then copies
+# the result into the deployment directory.
+#
+# The repository is expected to live OUTSIDE the app root (e.g.
+# ~/bmuwatch-repo) and the deployment target is the Node.js application's
+# root (~/bmuwatch), which is also where cPanel's "Setup Node.js App" points.
+#
+# Adjust DEPLOYPATH below to your own cPanel username.
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/cpaneluser/bmuwatch
+    - mkdir -p $DEPLOYPATH
+    # Copy the source tree, keeping the built output, the installed
+    # dependencies and the production .env that live in the app root.
+    - tar -cf - --exclude=.git --exclude=node_modules --exclude=.next --exclude=.env . | (cd $DEPLOYPATH && tar -xf -)
+    - cd $DEPLOYPATH
+    # Install including dev dependencies: `next build` needs typescript.
+    - npm ci --include=dev --no-audit --no-fund
+    # Apply any new migrations before the new code serves traffic.
+    - npx prisma migrate deploy
+    # Build the production bundle. Peak memory for this app is ~600 MB.
+    - npm run build

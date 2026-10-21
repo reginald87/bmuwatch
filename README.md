@@ -67,6 +67,8 @@ npm run dev                 # http://localhost:3000
 | --- | --- |
 | `npm run dev` | Start Next.js dev server |
 | `npm run build` | Type-generate + production build |
+| `npm run build:standalone` | Self-contained build (traced `node_modules`, no server-side install) |
+| `npm run artifact` | Package the standalone build into `dist/bmuwatch-artifact.tar.gz` |
 | `npm run start` | Start production build |
 | `npm run start:cpanel` | Start via `server.js` (cPanel / Passenger entry point) |
 | `npm run typecheck` | Run TypeScript (`tsc --noEmit`) |
@@ -101,6 +103,19 @@ Production deployment to cPanel (Setup Node.js App / Passenger) is documented in
 **[DEPLOY_CPANEL.md](DEPLOY_CPANEL.md)** — it covers the folder layout, database and upload
 placement outside the web root, the Node.js app configuration, migrations, the production seed,
 the build, SSL/PWA setup, backups and troubleshooting.
+
+Four deployment paths are documented. The recommended one builds the bundle on your own Linux
+machine and uploads only the 13 MB `.next` output, so the shared host never has to run
+`next build`:
+
+| Path | Where the build runs | Upload |
+| --- | --- | --- |
+| **A** ⭐ | your Linux machine | 13 MB (`.next` only) |
+| **B** | the server | — |
+| **C** | the server, via the cPanel Git™ panel | — |
+| **D** | your Linux machine (standalone artifact) | 124 MB, fully offline |
+
+`.cpanel.yml` at the repository root drives Path C's `Deploy HEAD Commit` button.
 
 ---
 
