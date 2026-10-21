@@ -10,6 +10,9 @@
 /.next/
 /out/
 
+# prebuilt deployment artifact (npm run artifact)
+/dist/
+
 # production
 /build
 
