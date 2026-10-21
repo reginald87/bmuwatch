@@ -30,6 +30,7 @@
     "bcryptjs": "^2.4.3",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
+    "dotenv": "^18.0.8",
     "jose": "^5.9.6",
     "next": "15.5.24",
     "prisma": "6.19.3",

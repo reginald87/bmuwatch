@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient, ReporterType, Urgency } from "@prisma/client";
 import bcrypt from "bcryptjs";// Seed script for development only. NOT for production.
 import { CATEGORY_NAMES, LOCATION_NAMES } from "./reference-data";

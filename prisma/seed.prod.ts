@@ -16,6 +16,10 @@
  *   CSO_EMAIL, CSO_PASSWORD, CSO_NAME
  *   OFFICER_EMAIL, OFFICER_PASSWORD, OFFICER_NAME
  */
+// Loads the production .env (DATABASE_URL, ADMIN_*, ...) before anything
+// reads process.env. The Prisma CLI loads .env itself, but this script is
+// run directly by tsx, which does not.
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { CATEGORY_NAMES, LOCATION_NAMES } from "./reference-data";
