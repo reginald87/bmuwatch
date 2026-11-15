@@ -48,6 +48,7 @@ function SidebarContent({ children }: { children: React.ReactNode }) {
           </span>
           <div>
             <div className="text-base font-bold text-brand-950 dark:text-brand-200">BMU WATCH</div>
+            <div className="text-[11px] font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">Bayelsa Medical University</div>
             <div className="text-[11px] text-gray-400">Security Operations</div>
           </div>
         </div>
@@ -106,7 +107,10 @@ function SidebarContent({ children }: { children: React.ReactNode }) {
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600">
                 <img src="/icons/icon-192.png" alt="" className="h-5 w-5 rounded" />
               </span>
-              <span className="font-bold text-brand-950 dark:text-brand-200">BMU WATCH</span>
+              <div className="leading-tight">
+                <div className="font-bold text-brand-950 dark:text-brand-200">BMU WATCH</div>
+                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-600 dark:text-gray-300">Bayelsa Medical University</div>
+              </div>
             </div>
             <button onClick={logout} className="text-sm text-gray-500 dark:text-gray-400">Sign Out</button>
           </div>

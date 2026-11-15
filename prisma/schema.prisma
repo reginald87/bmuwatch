@@ -1,12 +1,12 @@
 // BMU WATCH - Prisma schema
-// Database: SQLite via Prisma ORM
+// Database: MySQL via Prisma ORM (cPanel / production)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 

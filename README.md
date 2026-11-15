@@ -34,7 +34,7 @@ An offline-first campus security reporting Progressive Web App (PWA) for **Bayel
 | --- | --- |
 | Framework | Next.js 15 (App Router) |
 | UI | React 18, Tailwind CSS 3, TypeScript (strict) |
-| Server DB | Prisma 6 + SQLite (default: `prisma/dev.db`) |
+| Server DB | Prisma 6 + MySQL (cPanel / production) |
 | Sessions | jose (JWT, signed, httpOnly cookie) |
 | Passwords | bcryptjs |
 | Client offline | Dexie (IndexedDB) + custom `SyncManager` |
@@ -52,9 +52,12 @@ npm install
 # 2. Configure environment
 cp .env.example .env        # then edit AUTH_SECRET, etc.
 
+# 2b. Create the local MySQL database (name/user/password must match DATABASE_URL)
+mysql -e "CREATE DATABASE bmuwatch;"
+
 # 3. Set up the database and seed dev admins + reference data
 npm run prisma:generate
-npm run prisma:deploy       # apply migrations to dev DB
+npm run prisma:deploy       # apply migrations to the MySQL database
 npm run db:seed             # seeds categories, locations, and dev admins
 
 # 4. Run the dev server
@@ -88,7 +91,7 @@ See `.env.example` for a full template. Required:
 
 | Variable | Notes |
 | --- | --- |
-| `DATABASE_URL` | SQLite file URL. Dev: `file:./dev.db` (relative to `prisma/`). Production: absolute path, e.g. `file:/home/<user>/bmuwatch-data/prod.db` |
+| `DATABASE_URL` | MySQL connection URL, e.g. `mysql://<user>:<password>@<host>:3306/<database>`. Dev: `mysql://bmuwatch:bmuwatch@localhost:3306/bmuwatch`. Production (cPanel): the MySQL database created for the app, e.g. `mysql://bmuwatch:bmuwatch_dbpass@localhost:3306/bmuwatch_db`. |
 | `AUTH_SECRET` | Signs admin session JWTs. Use ≥ 32 random chars (`JWT_SECRET` is a fallback). |
 | `NEXT_PUBLIC_APP_URL` | Base URL of the app |
 | `UPLOAD_DIR` | *Optional* attachments dir on disk (defaults to `./uploads`). In production point it **outside** the app root |
@@ -158,7 +161,7 @@ The test suite asserts all three layers.
 ## Testing
 
 - `tests/validation.test.ts` — request validation, privacy stripping, attachment rules.
-- `tests/reportService.test.ts` — report create (anon/identified/student/staff), idempotency, admin DTO privacy, two-way responses, status transitions, assignment, audit. Runs against an isolated `prisma/test.db`.
+- `tests/reportService.test.ts` — report create (anon/identified/student/staff), idempotency, admin DTO privacy, two-way responses, status transitions, assignment, audit. Runs against an isolated MySQL test database.
 - `tests/clientOffline.test.ts` — offline persistence, sync payloads, SyncManager upload/failure/offline behavior, and the response outbox (fake-indexeddb).
 
 ```bash

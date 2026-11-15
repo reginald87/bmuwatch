@@ -46,16 +46,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             <div className="leading-tight">
               <div className="text-lg font-extrabold tracking-tight">BMU WATCH</div>
-              <div className="text-[10px] font-medium uppercase tracking-widest text-brand-100/90">
-                Keep BMU Safe
+              <div className="text-[11px] font-bold uppercase tracking-widest text-brand-100">
+                Bayelsa Medical University
               </div>
             </div>
           </Link>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <span className="hidden rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-brand-50 sm:inline">
-              Bayelsa Medical University
-            </span>
           </div>
         </div>
       </header>

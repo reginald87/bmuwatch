@@ -41,6 +41,7 @@ export default function AdminLoginPage() {
             <img src="/icons/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
           </div>
           <h1 className="text-2xl font-extrabold">BMU WATCH</h1>
+          <p className="mt-1 text-sm font-bold uppercase tracking-wide text-white">Bayelsa Medical University</p>
           <p className="text-sm text-brand-100">Security Operations</p>
         </div>
 

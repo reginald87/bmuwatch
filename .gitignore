@@ -39,7 +39,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma sqlite db (generated/dev)
+# prisma generated databases (dev leftovers; the server DB now lives in MySQL)
 prisma/dev.db
 prisma/dev.db-journal
 prisma/test.db

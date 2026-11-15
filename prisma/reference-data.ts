@@ -21,6 +21,7 @@ export const CATEGORY_NAMES = [
 export const LOCATION_NAMES = [
   "Main Gate",
   "Main Campus",
+  "Sampou Campus",
   "Lecture Theatre",
   "Library",
   "Hostel",

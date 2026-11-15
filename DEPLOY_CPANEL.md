@@ -1,6 +1,6 @@
 # BMU WATCH — cPanel Deployment Guide (TrueHost)
 
-Target stack: **Next.js 15.5 (App Router) + Prisma 6 (SQLite) + Passenger**, running under cPanel's
+Target stack: **Next.js 15.5 (App Router) + Prisma 6 (MySQL) + Passenger**, running under cPanel's
 **Setup Node.js App** (CloudLinux Node.js Selector).
 
 Every command and figure in this guide has been executed and verified on Linux (Node 20.19.4,
@@ -56,13 +56,13 @@ locally. Paths C and D are documented for completeness.
 │   ├── .next/                   <-- production build
 │   └── ...
 ├── bmuwatch-data/               <-- data root (NEVER in public_html)
-│   ├── prod.db                  <-- SQLite database
+│   ├── bmuwatch                  <-- MySQL database (bmuwatch)
 │   └── uploads/                 <-- report attachments
 └── public_html/                 <-- document root (holds the proxy .htaccess)
 ```
 
 **Why the data root is outside the app root:** Passenger watches the app directory and restarts the
-app whenever a file changes. If the SQLite DB or the uploads folder lived inside `bmuwatch/`, every
+app whenever a file changes. If the MySQL database or the uploads folder lived inside `bmuwatch/`, every
 incoming report would restart your app. It also keeps the DB and attachments off the web.
 
 ---
@@ -213,7 +213,7 @@ Expect `Computed binaryTarget : debian-openssl-3.0.x` (or `rhel-openssl-3.0.x`).
 
 ```bash
 cat > ~/bmuwatch/.env <<'EOF'
-DATABASE_URL="file:/home/cpaneluser/bmuwatch-data/prod.db"
+DATABASE_URL="mysql://bmuwatch:bmuwatch@localhost:3306/bmuwatch"
 AUTH_SECRET="PASTE_THE_64_CHARACTER_SECRET_HERE"
 NEXT_PUBLIC_APP_URL="https://watch.bmu.edu.ng"
 UPLOAD_DIR="/home/cpaneluser/bmuwatch-data/uploads"
@@ -233,8 +233,8 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 
 Notes:
 
-* `DATABASE_URL` is an **absolute** path. If Prisma rejects it, use the triple-slash form:
-  `file:///home/cpaneluser/bmuwatch-data/prod.db`.
+* `DATABASE_URL` is a **MySQL** connection string (`mysql://<user>:<password>@<host>:3306/<database>`).
+  The database and the database user must already exist on the server (cPanel -> **MySQL Databases**).
 * `UPLOAD_DIR` must be writable and outside the app root.
 * `AUTH_SECRET` must be unique per environment. Rotating it logs all admins out.
 * The `ADMIN_*` values are used only by the production seed (Phase 7). You can move them to
@@ -251,10 +251,11 @@ npx prisma migrate deploy
 npx prisma migrate status     # should say: Database schema is up to date
 ```
 
-`migrate deploy` creates `prod.db` automatically:
+`migrate deploy` applies the Prisma migrations to the configured MySQL database. Create the
+database and the user first (see Phase 6):
 
 ```bash
-ls -lh ~/bmuwatch-data/
+mysql -u bmuwatch -p -e "SHOW TABLES;" bmuwatch
 ```
 
 ---
@@ -378,7 +379,7 @@ Run through this list before telling anyone the app is live:
 | 6 | Reply to the reporter | Reply from the inbox → the reply appears in *My Reports* on the phone |
 | 7 | Attachment upload + download | Attach a photo → it appears in the inbox → click it and it downloads |
 | 8 | Offline queue | Turn off data on the phone, submit a report, turn data back on → it syncs automatically, no duplicate |
-| 9 | DB is not web-readable | `curl -I https://domain/bmuwatch-data/prod.db` → `404` |
+| 9 | DB is not web-readable | MySQL is not exposed to the web; verify the connection with `mysql -u bmuwatch -p -e "SELECT 1;" bmuwatch` |
 | 10 | Uploads are not web-readable | `curl -I https://domain/uploads/att-xxxx.png` → `404` |
 | 11 | Restart survives | `Restart Application` in cPanel → pages still work, existing reports still there |
 | 12 | Attachments persisted | Restart the app, then open an attachment again → it still downloads |
@@ -390,7 +391,7 @@ Run through this list before telling anyone the app is live:
 ### Daily backup (cPanel → Cron Jobs)
 
 ```bash
-15 2 * * * cp /home/cpaneluser/bmuwatch-data/prod.db /home/cpaneluser/bmuwatch-data/backups/prod-$(date +\%F).db && find /home/cpaneluser/bmuwatch-data/backups -name 'prod-*.db' -mtime +14 -delete
+15 2 * * * mysqldump -u bmuwatch -p bmuwatch > /home/cpaneluser/bmuwatch-data/backups/bmuwatch-$(date +\%F).sql && find /home/cpaneluser/bmuwatch-data/backups -name 'bmuwatch-*.sql' -mtime +14 -delete
 ```
 
 (In cPanel cron the `%` must be escaped as `\%`.) Add a second weekly job that zips `uploads/`.
@@ -462,7 +463,7 @@ More precisely, the offline commands are:
 
 ```bash
 cd ~/bmuwatch
-export DATABASE_URL="file:/home/cpaneluser/bmuwatch-data/prod.db"
+export DATABASE_URL="mysql://bmuwatch:bmuwatch@localhost:3306/bmuwatch"
 export ADMIN_NAME="BMU WATCH Administrator"
 export ADMIN_EMAIL="security@bmu.edu.ng"
 export ADMIN_PASSWORD="..."
@@ -495,7 +496,7 @@ press **Restart Application**.
 | Build: `JavaScript heap out of memory` | Account memory limit too low | Lower `NODE_OPTIONS`, or use Path A (build locally) |
 | Build: killed with no error | CloudLinux LVE killed the process | Check `lveinfo` / ask the host to raise the limit, or use Path A |
 | Prisma: `Cannot find engine / Failed to download` | Server cannot reach `binaries.prisma.sh` | `export PRISMA_ENGINES_MIRROR=https://npmmirror.com/mirrors/prisma` then `npx prisma generate` |
-| Prisma: `P1013 The database file could not be found` | `bmuwatch-data` missing or wrong path | `mkdir -p ~/bmuwatch-data`, re-check `DATABASE_URL` |
+| Prisma: `P1001 Can't reach database server` / `P2021` | MySQL server unreachable or database missing | Confirm the MySQL host/port in `DATABASE_URL`; create the database via cPanel -> MySQL Databases -> Create Database |
 | `EACCES: permission denied` writing uploads | `bmuwatch-data/uploads` not writable | `chmod 750 ~/bmuwatch-data/uploads` and check `UPLOAD_DIR` |
 | Seed: `Missing required environment variable: ADMIN_EMAIL` | `.env` not loaded | Run `npm run db:seed:prod` from the app root (the script loads `.env` itself) |
 | App restarts every time a report arrives | DB/uploads are inside the app root | Move `DATABASE_URL` + `UPLOAD_DIR` to `~/bmuwatch-data` and restart |
@@ -556,7 +557,7 @@ chmod 750 bmuwatch-data bmuwatch-data/uploads
 git clone https://github.com/reginald87/bmuwatch.git bmuwatch && cd bmuwatch
 npm ci --omit=dev --no-audit --no-fund          # Path A  (add --include=dev for Path B)
 cat > .env <<'EOF'
-DATABASE_URL="file:/home/cpaneluser/bmuwatch-data/prod.db"
+DATABASE_URL="mysql://bmuwatch:bmuwatch@localhost:3306/bmuwatch"
 AUTH_SECRET="..."
 NEXT_PUBLIC_APP_URL="https://watch.bmu.edu.ng"
 UPLOAD_DIR="/home/cpaneluser/bmuwatch-data/uploads"

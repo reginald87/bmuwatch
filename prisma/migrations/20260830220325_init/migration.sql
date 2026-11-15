@@ -1,184 +1,185 @@
 -- CreateTable
-CREATE TABLE "AdminUser" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "passwordHash" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'CSO',
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
+CREATE TABLE `AdminUser` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `passwordHash` VARCHAR(191) NOT NULL,
+    `role` ENUM('SUPER_ADMIN', 'CSO', 'SECURITY_OFFICER') NOT NULL DEFAULT 'CSO',
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `AdminUser_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "SecurityCategory" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
+CREATE TABLE `SecurityCategory` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SecurityCategory_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "SecurityLocation" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
+CREATE TABLE `SecurityLocation` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SecurityLocation_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "SecurityReport" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "clientSubmissionId" TEXT NOT NULL,
-    "serverReference" TEXT NOT NULL,
-    "reporterType" TEXT NOT NULL,
-    "isAnonymous" BOOLEAN NOT NULL DEFAULT false,
-    "fullName" TEXT,
-    "studentId" TEXT,
-    "staffId" TEXT,
-    "department" TEXT,
-    "faculty" TEXT,
-    "email" TEXT,
-    "phone" TEXT,
-    "categoryId" TEXT NOT NULL,
-    "locationId" TEXT NOT NULL,
-    "urgency" TEXT NOT NULL DEFAULT 'NORMAL',
-    "incidentDate" DATETIME,
-    "incidentTime" TEXT,
-    "description" TEXT NOT NULL,
-    "additionalInfo" TEXT,
-    "status" TEXT NOT NULL DEFAULT 'SUBMITTED',
-    "installationId" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "SecurityReport_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "SecurityCategory" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "SecurityReport_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "SecurityLocation" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
+CREATE TABLE `SecurityReport` (
+    `id` VARCHAR(191) NOT NULL,
+    `clientSubmissionId` VARCHAR(191) NOT NULL,
+    `serverReference` VARCHAR(191) NOT NULL,
+    `reporterType` ENUM('STUDENT', 'STAFF') NOT NULL,
+    `isAnonymous` BOOLEAN NOT NULL DEFAULT false,
+    `fullName` VARCHAR(191) NULL,
+    `studentId` VARCHAR(191) NULL,
+    `staffId` VARCHAR(191) NULL,
+    `department` VARCHAR(191) NULL,
+    `faculty` VARCHAR(191) NULL,
+    `email` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `categoryId` VARCHAR(191) NOT NULL,
+    `locationId` VARCHAR(191) NOT NULL,
+    `urgency` ENUM('NORMAL', 'URGENT', 'CRITICAL') NOT NULL DEFAULT 'NORMAL',
+    `incidentDate` DATETIME(3) NULL,
+    `incidentTime` VARCHAR(191) NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `additionalInfo` VARCHAR(191) NULL,
+    `status` ENUM('SUBMITTED', 'RECEIVED', 'READ_BY_CSO', 'UNDER_INVESTIGATION', 'AWAITING_INFORMATION', 'RESPONDED', 'RESOLVED', 'CLOSED') NOT NULL DEFAULT 'SUBMITTED',
+    `installationId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SecurityReport_clientSubmissionId_key`(`clientSubmissionId`),
+    UNIQUE INDEX `SecurityReport_serverReference_key`(`serverReference`),
+    INDEX `SecurityReport_status_idx`(`status`),
+    INDEX `SecurityReport_createdAt_idx`(`createdAt`),
+    INDEX `SecurityReport_categoryId_idx`(`categoryId`),
+    INDEX `SecurityReport_locationId_idx`(`locationId`),
+    INDEX `SecurityReport_clientSubmissionId_idx`(`clientSubmissionId`),
+    INDEX `SecurityReport_installationId_idx`(`installationId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "ReportResponse" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "reportId" TEXT NOT NULL,
-    "authorRole" TEXT NOT NULL DEFAULT 'USER',
-    "authorName" TEXT,
-    "isFromAdmin" BOOLEAN NOT NULL DEFAULT false,
-    "body" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ReportResponse_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "SecurityReport" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
+CREATE TABLE `ReportResponse` (
+    `id` VARCHAR(191) NOT NULL,
+    `reportId` VARCHAR(191) NOT NULL,
+    `authorRole` VARCHAR(191) NOT NULL DEFAULT 'USER',
+    `authorName` VARCHAR(191) NULL,
+    `isFromAdmin` BOOLEAN NOT NULL DEFAULT false,
+    `body` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `ReportResponse_reportId_idx`(`reportId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "ReportAttachment" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "reportId" TEXT NOT NULL,
-    "fileName" TEXT NOT NULL,
-    "mimeType" TEXT NOT NULL,
-    "sizeBytes" INTEGER NOT NULL,
-    "storageKey" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ReportAttachment_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "SecurityReport" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
+CREATE TABLE `ReportAttachment` (
+    `id` VARCHAR(191) NOT NULL,
+    `reportId` VARCHAR(191) NOT NULL,
+    `fileName` VARCHAR(191) NOT NULL,
+    `mimeType` VARCHAR(191) NOT NULL,
+    `sizeBytes` INTEGER NOT NULL,
+    `storageKey` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `ReportAttachment_storageKey_key`(`storageKey`),
+    INDEX `ReportAttachment_reportId_idx`(`reportId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "ReportStatusHistory" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "reportId" TEXT NOT NULL,
-    "fromStatus" TEXT,
-    "toStatus" TEXT NOT NULL,
-    "adminId" TEXT,
-    "note" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ReportStatusHistory_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "SecurityReport" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "ReportStatusHistory_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "AdminUser" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
+CREATE TABLE `ReportStatusHistory` (
+    `id` VARCHAR(191) NOT NULL,
+    `reportId` VARCHAR(191) NOT NULL,
+    `fromStatus` ENUM('SUBMITTED', 'RECEIVED', 'READ_BY_CSO', 'UNDER_INVESTIGATION', 'AWAITING_INFORMATION', 'RESPONDED', 'RESOLVED', 'CLOSED') NULL,
+    `toStatus` ENUM('SUBMITTED', 'RECEIVED', 'READ_BY_CSO', 'UNDER_INVESTIGATION', 'AWAITING_INFORMATION', 'RESPONDED', 'RESOLVED', 'CLOSED') NOT NULL,
+    `adminId` VARCHAR(191) NULL,
+    `note` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `ReportStatusHistory_reportId_idx`(`reportId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "ReportAssignment" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "reportId" TEXT NOT NULL,
-    "assigneeId" TEXT NOT NULL,
-    "assignedById" TEXT NOT NULL,
-    "assignedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "note" TEXT,
-    CONSTRAINT "ReportAssignment_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "SecurityReport" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "ReportAssignment_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "AdminUser" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "ReportAssignment_assignedById_fkey" FOREIGN KEY ("assignedById") REFERENCES "AdminUser" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
+CREATE TABLE `ReportAssignment` (
+    `id` VARCHAR(191) NOT NULL,
+    `reportId` VARCHAR(191) NOT NULL,
+    `assigneeId` VARCHAR(191) NOT NULL,
+    `assignedById` VARCHAR(191) NOT NULL,
+    `assignedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `note` VARCHAR(191) NULL,
+
+    INDEX `ReportAssignment_reportId_idx`(`reportId`),
+    INDEX `ReportAssignment_assigneeId_idx`(`assigneeId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "AuditLog" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "reportId" TEXT,
-    "adminId" TEXT,
-    "action" TEXT NOT NULL,
-    "detail" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "AuditLog_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "SecurityReport" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "AuditLog_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "AdminUser" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
+CREATE TABLE `AuditLog` (
+    `id` VARCHAR(191) NOT NULL,
+    `reportId` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NULL,
+    `action` ENUM('VIEWED', 'STATUS_CHANGED', 'ASSIGNED', 'RESPONDED', 'RESOLVED', 'CATEGORY_CHANGED', 'LOCATION_CHANGED', 'REPORTER_CHANGED') NOT NULL,
+    `detail` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- CreateIndex
-CREATE UNIQUE INDEX "AdminUser_email_key" ON "AdminUser"("email");
+    INDEX `AuditLog_reportId_idx`(`reportId`),
+    INDEX `AuditLog_adminId_idx`(`adminId`),
+    INDEX `AuditLog_createdAt_idx`(`createdAt`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SecurityCategory_name_key" ON "SecurityCategory"("name");
+-- AddForeignKey
+ALTER TABLE `SecurityReport` ADD CONSTRAINT `SecurityReport_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `SecurityCategory`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SecurityLocation_name_key" ON "SecurityLocation"("name");
+-- AddForeignKey
+ALTER TABLE `SecurityReport` ADD CONSTRAINT `SecurityReport_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `SecurityLocation`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SecurityReport_clientSubmissionId_key" ON "SecurityReport"("clientSubmissionId");
+-- AddForeignKey
+ALTER TABLE `ReportResponse` ADD CONSTRAINT `ReportResponse_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `SecurityReport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SecurityReport_serverReference_key" ON "SecurityReport"("serverReference");
+-- AddForeignKey
+ALTER TABLE `ReportAttachment` ADD CONSTRAINT `ReportAttachment_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `SecurityReport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_status_idx" ON "SecurityReport"("status");
+-- AddForeignKey
+ALTER TABLE `ReportStatusHistory` ADD CONSTRAINT `ReportStatusHistory_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `SecurityReport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_createdAt_idx" ON "SecurityReport"("createdAt");
+-- AddForeignKey
+ALTER TABLE `ReportStatusHistory` ADD CONSTRAINT `ReportStatusHistory_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `AdminUser`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_categoryId_idx" ON "SecurityReport"("categoryId");
+-- AddForeignKey
+ALTER TABLE `ReportAssignment` ADD CONSTRAINT `ReportAssignment_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `SecurityReport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_locationId_idx" ON "SecurityReport"("locationId");
+-- AddForeignKey
+ALTER TABLE `ReportAssignment` ADD CONSTRAINT `ReportAssignment_assigneeId_fkey` FOREIGN KEY (`assigneeId`) REFERENCES `AdminUser`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_clientSubmissionId_idx" ON "SecurityReport"("clientSubmissionId");
+-- AddForeignKey
+ALTER TABLE `ReportAssignment` ADD CONSTRAINT `ReportAssignment_assignedById_fkey` FOREIGN KEY (`assignedById`) REFERENCES `AdminUser`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "SecurityReport_installationId_idx" ON "SecurityReport"("installationId");
+-- AddForeignKey
+ALTER TABLE `AuditLog` ADD CONSTRAINT `AuditLog_reportId_fkey` FOREIGN KEY (`reportId`) REFERENCES `SecurityReport`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "ReportResponse_reportId_idx" ON "ReportResponse"("reportId");
+-- AddForeignKey
+ALTER TABLE `AuditLog` ADD CONSTRAINT `AuditLog_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `AdminUser`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "ReportAttachment_storageKey_key" ON "ReportAttachment"("storageKey");
-
--- CreateIndex
-CREATE INDEX "ReportAttachment_reportId_idx" ON "ReportAttachment"("reportId");
-
--- CreateIndex
-CREATE INDEX "ReportStatusHistory_reportId_idx" ON "ReportStatusHistory"("reportId");
-
--- CreateIndex
-CREATE INDEX "ReportAssignment_reportId_idx" ON "ReportAssignment"("reportId");
-
--- CreateIndex
-CREATE INDEX "ReportAssignment_assigneeId_idx" ON "ReportAssignment"("assigneeId");
-
--- CreateIndex
-CREATE INDEX "AuditLog_reportId_idx" ON "AuditLog"("reportId");
-
--- CreateIndex
-CREATE INDEX "AuditLog_adminId_idx" ON "AuditLog"("adminId");
-
--- CreateIndex
-CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
