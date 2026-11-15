@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useAdmin } from "../../AdminAuthProvider";
 
 interface User {
@@ -24,6 +24,8 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState("CSO");
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [resetFor, setResetFor] = useState<string | null>(null);
+  const [resetPassword, setResetPassword] = useState("");
 
   useEffect(() => {
     fetch("/api/admin/users", { cache: "no-store" })
@@ -67,6 +69,26 @@ export default function AdminUsersPage() {
     if (res.ok) setUsers((p) => p.map((x) => (x.id === u.id ? d.user : x)));
   };
 
+  const resetPasswordFor = async (u: User) => {
+    if (resetPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setError(null);
+    setMsg(null);
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: u.id, password: resetPassword })
+    });
+    const d = await res.json();
+    if (!res.ok) return setError(d.error || "Failed.");
+    setUsers((p) => p.map((x) => (x.id === u.id ? d.user : x)));
+    setResetFor(null);
+    setResetPassword("");
+    setMsg(`Password reset for ${u.email}.`);
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -95,7 +117,8 @@ export default function AdminUsersPage() {
       <section className="card overflow-hidden">
         <ul className="divide-y divide-gray-100 dark:divide-gray-800">
           {users.map((u) => (
-            <li key={u.id} className="flex items-center justify-between px-4 py-3">
+            <Fragment key={u.id}>
+            <li className="flex items-center justify-between px-4 py-3">
               <div>
                 <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {u.name}
@@ -106,12 +129,50 @@ export default function AdminUsersPage() {
                   {u.id === admin?.id && <span className={u.isActive ? "text-success-600 dark:text-success-400" : "text-gray-400"}> · {u.isActive ? "Active" : "Inactive"}</span>}
                 </div>
               </div>
-              {u.id !== admin?.id && (
-                <button onClick={() => toggleActive(u)} className="btn-secondary py-1 text-xs">
-                  {u.isActive ? "Deactivate" : "Activate"}
+              <div className="flex items-center gap-3">
+                {u.id !== admin?.id && (
+                  <button onClick={() => toggleActive(u)} className="btn-secondary py-1 text-xs">
+                    {u.isActive ? "Deactivate" : "Activate"}
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setResetFor(resetFor === u.id ? null : u.id);
+                    setResetPassword("");
+                  }}
+                  className="btn-secondary py-1 text-xs"
+                >
+                  {resetFor === u.id ? "Cancel" : "Reset password"}
                 </button>
-              )}
+              </div>
             </li>
+            {resetFor === u.id && (
+              <li className="border-t border-gray-100 px-4 py-3 dark:border-gray-800">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    resetPasswordFor(u);
+                  }}
+                  className="flex flex-col gap-2 sm:flex-row"
+                >
+                  <input
+                    className="input"
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    placeholder="New password (min 8 characters)"
+                    required
+                    minLength={8}
+                    maxLength={200}
+                    autoComplete="new-password"
+                  />
+                  <button type="submit" className="btn-primary">
+                    Reset Password
+                  </button>
+                </form>
+              </li>
+            )}
+            </Fragment>
           ))}
         </ul>
       </section>
