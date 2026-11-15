@@ -5,14 +5,16 @@
 # runs these tasks from the cPanel-managed repository directory, then copies
 # the result into the deployment directory.
 #
-# The repository is expected to live OUTSIDE the app root (e.g.
-# ~/bmuwatch-repo) and the deployment target is the Node.js application's
-# root (~/bmuwatch), which is also where cPanel's "Setup Node.js App" points.
+# The repository MUST live OUTSIDE the app root (e.g. ~/bmuwatch-repo) and the
+# deployment target is the Node.js application's root, which is also where
+# cPanel's "Setup Node.js App" points.
 #
-# Adjust DEPLOYPATH below to your own cPanel username.
+# WARNING: if the cPanel Git repository is cloned INTO the app root, the tar
+# copy below would extract the tree over itself. Keep the Git repository in a
+# separate directory (for example ~/bmuwatch-repo).
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/cpaneluser/bmuwatch
+    - export DEPLOYPATH=/home/logjdviq/bmuwatch.bmu.edu.ng
     - mkdir -p $DEPLOYPATH
     # Copy the source tree, keeping the built output, the installed
     # dependencies and the production .env that live in the app root.
